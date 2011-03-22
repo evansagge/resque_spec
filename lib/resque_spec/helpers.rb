@@ -12,7 +12,8 @@ module ResqueSpec
     def enable_perform
       ::Resque.module_eval do
         def self.enqueue(klass, *args)
-          klass.perform(*args)
+          job = ::Resque::Job.new(ResqueSpec.queue_name(klass), 'class' => klass.to_s, 'args' => args)
+          job.perform
         end
       end
     end

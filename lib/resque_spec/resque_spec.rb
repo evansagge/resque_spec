@@ -14,10 +14,7 @@ module ResqueSpec
   end
 
   def queue_name(klass)
-    if klass.is_a?(String)
-      klass = Kernel.const_get(klass) rescue nil
-    end
-    
+    klass = ::Resque.constantize(klass) rescue nil if klass.is_a?(String)
     name_from_instance_var(klass) or
       name_from_queue_accessor(klass) or
         raise ::Resque::NoQueueError.new("Jobs must be placed onto a queue.")
@@ -50,7 +47,7 @@ module ResqueSpec
 
     def reset!
       ResqueSpec.reset!
-    end     
+    end  
     
     module Job
       extend self
@@ -58,13 +55,15 @@ module ResqueSpec
       def self.included(base)
         base.instance_eval do
           
-          def create(queue, klass, *args)
+          def create_without_resque(queue, klass, *args)
             raise ::Resque::NoQueueError.new("Jobs must be placed onto a queue.") if !queue
             raise ::Resque::NoClassError.new("Jobs must be given a class.") if klass.to_s.empty?
             ResqueSpec.queues[queue] << {:klass => klass.to_s, :args => args}
           end
+          alias :create_with_resque :create
+          alias :create :create_without_resque       
 
-          def destroy(queue, klass, *args)
+          def destroy_without_resque(queue, klass, *args)
             raise ::Resque::NoQueueError.new("Jobs must have been placed onto a queue.") if !queue
             raise ::Resque::NoClassError.new("Jobs must have been given a class.") if klass.to_s.empty?
 
@@ -77,6 +76,8 @@ module ResqueSpec
             end
             old_count - ResqueSpec.queues[queue].size
           end    
+          alias :destroy_with_resque :destroy
+          alias :destroy :destroy_without_resque          
           
         end
       end    
