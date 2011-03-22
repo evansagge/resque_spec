@@ -10,15 +10,21 @@ RSpec::Matchers.define :have_queued do |*expected_args|
   end
 
   failure_message_for_should do |actual|
-    "expected that #{actual} would have [#{expected_args.join(', ')}] queued"
+    s = "expected to have #{actual} in the queue"
+    s << " with arguments [#{expected_args.join(', ')}]" if expected_args.any?
+    s
   end
 
   failure_message_for_should_not do |actual|
-    "expected that #{actual} would not have [#{expected_args.join(', ')}] queued"
+    s = "expected to not have #{actual} in the queue"
+    s << " with arguments [#{expected_args.join(', ')}]" if expected_args.any?
+    s
   end
 
   description do
-    "have queued arguments of [#{expected_args.join(', ')}]"
+    desc = "have queued #{actual}"
+    desc << " with arguments [#{expected_args.join(', ')}]" if expected_args.any?
+    desc
   end
 end
 
