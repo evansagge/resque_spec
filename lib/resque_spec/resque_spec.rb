@@ -49,6 +49,22 @@ module ResqueSpec
       ResqueSpec.reset!
     end  
     
+    def run!(queue = nil)
+      if queue
+        ResqueSpec.queues[queue].each do |payload|
+          job = ::Resque::Job.new(queue, 'class' => payload[:klass], 'args' => payload[:args])
+          job.perform          
+        end
+      else
+        ResqueSpec.queues.each do |queue, payloads|
+          payloads.each do |payload|
+            job = ::Resque::Job.new(queue, 'class' => payload[:klass], 'args' => payload[:args])
+            job.perform                      
+          end
+        end
+      end
+    end
+      
     module Job
       extend self
       
